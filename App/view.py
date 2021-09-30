@@ -25,7 +25,7 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 assert cf
-
+from DISClib.ADT import map as mp
 
 """
 La vista se encarga de la interacción con el usuario
@@ -37,9 +37,19 @@ operación solicitada
 def printMenu():
     print("Bienvenido")
     print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("2- Obras más antiguas para un medio específico")
 
-catalog = None
+def printArtworksbyYear(artworks, n):
+    if(artworks):
+        print('Se encontraron: ' + str(lt.size(artworks)) + ' Libros')
+        print("\n")
+        i = 1
+        while i <= n:
+            artwork = lt.getElement(artworks, i)
+            print(artwork['Title']+" | "+artwork["Date"])
+            i +=1
+    else:
+        print("No se encontraron libros.\n")
 
 """
 Menu principal
@@ -49,9 +59,14 @@ while True:
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
-
+        catalog = controller.initCatalog()
+        controller.loadData(catalog)
     elif int(inputs[0]) == 2:
-        pass
+        medio = input("Ingrese el medio que desea consultar: ")
+        n = input("Ingrese el número de obras que desea ver: ")
+        r = controller.ArtworksByMedium(catalog, medio)
+        r = controller.SortByDate(r)
+        printArtworksbyYear(r, int(n))
 
     else:
         sys.exit(0)

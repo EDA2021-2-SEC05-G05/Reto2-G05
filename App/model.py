@@ -39,12 +39,70 @@ los mismos.
 
 # Construccion de modelos
 
+def newCatalog():
+    catalog = {'artworks': None,
+               "medium": None,}
+    catalog['artworks'] = lt.newList('SINGLE_LINKED', compareArtworksIds)
+    catalog["medium"] = mp.newMap(10000,
+                                   maptype='CHAINING',
+                                   loadfactor=4.0,
+                                   comparefunction=compareMedium)
+    return catalog
+
 # Funciones para agregar informacion al catalogo
 
+def addArtwork(catalog, artwork):
+    lt.addLast(catalog['artworks'], artwork)
+    addArtworkMedium(catalog, artwork)
+
+def addArtworkMedium(catalog, artwork):
+    mediums = catalog["medium"]
+    if (artwork['Medium'] != ''):
+        med = artwork["Medium"]
+    else:
+        med = "Unknown"
+    existmed = mp.contains(mediums, med)
+    if existmed:
+        entry = mp.get(mediums, med)
+        m = me.getValue(entry)
+    else:
+        m = newMedium(med)
+        mp.put(mediums, med, m)
+    lt.addLast(m['artworks'], artwork)
+
+def newMedium(med):
+    entry = {'Medium': "", "artworks": None}
+    entry['Medium'] = med
+    entry['artworks'] = lt.newList('SINGLE_LINKED', compareMedium)
+    return entry
 # Funciones para creacion de datos
 
 # Funciones de consulta
 
-# Funciones utilizadas para comparar elementos dentro de una lista
+def getArtworksByYear(catalog, medio):
+    medio = mp.get(catalog['medium'], medio)
+    if medio:
+        return me.getValue(medio)['artworks']
+    return None
 
+# Funciones utilizadas para comparar elementos dentro de una lista
+def compareArtworksIds(id1, id2):
+    if (id1 == id2):
+        return 0
+    elif id1 > id2:
+        return 1
+    else:
+        return -1
+def compareMedium(keyM, medium):
+    authentry = me.getKey(medium)
+    if (keyM == authentry):
+        return 0
+    elif (keyM > authentry):
+        return 1
+    else:
+        return -1
 # Funciones de ordenamiento
+def SortByDate(list):
+    return sa.sort(list, cmpArtworkByDate)
+def cmpArtworkByDate(artwork1, artwork2):
+    return (artwork1["Date"]<artwork2["Date"])
