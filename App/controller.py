@@ -45,7 +45,9 @@ def loadData(catalog):
     Carga los datos de los archivos y cargar los datos en la
     estructura de datos
     """
+    loadArtists(catalog)
     loadArtworks(catalog)
+    #SortByDate(catalog["artworks"])
 
 
 def loadArtworks(catalog):
@@ -58,6 +60,16 @@ def loadArtworks(catalog):
     for artwork in input_file:
         model.addArtwork(catalog, artwork)
 
+def loadArtists(catalog):
+    """
+    Carga los libros del archivo.  Por cada libro se indica al
+    modelo que debe adicionarlo al catalogo.
+    """
+    booksfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
+    for artist in input_file:
+        model.addArtist(catalog, artist)
+
 # Funciones de ordenamiento
 
 def SortByDate(list):
@@ -65,4 +77,8 @@ def SortByDate(list):
 
 # Funciones de consulta sobre el catálogo
 def ArtworksByMedium(catalog, medio):
-    return model.getArtworksByYear(catalog, medio)
+    r = model.getArtworksByMedium(catalog, medio)
+    return SortByDate(r)
+def Nationalities(catalog):
+    model.Nationalities(catalog)
+    return model.SortNationalities(catalog)

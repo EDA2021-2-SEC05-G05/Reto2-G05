@@ -26,6 +26,7 @@ import controller
 from DISClib.ADT import list as lt
 assert cf
 from DISClib.ADT import map as mp
+import time
 
 """
 La vista se encarga de la interacción con el usuario
@@ -38,8 +39,9 @@ def printMenu():
     print("Bienvenido")
     print("1- Cargar información en el catálogo")
     print("2- Obras más antiguas para un medio específico")
+    print("3- Nacionalidades por cantidad de obras")
 
-def printArtworksbyYear(artworks, n):
+def printArtworksbyMedium(artworks, n):
     if(artworks):
         print('Se encontraron: ' + str(lt.size(artworks)) + ' Libros')
         print("\n")
@@ -50,6 +52,10 @@ def printArtworksbyYear(artworks, n):
             i +=1
     else:
         print("No se encontraron libros.\n")
+
+def printNResults(nat):
+    for n in lt.iterator(nat):
+        print("Nacionalidad: ", n["Nationality"], "| Cantidad de obras: ", lt.size(n["artworks"]), "\n")
 
 """
 Menu principal
@@ -62,12 +68,22 @@ while True:
         catalog = controller.initCatalog()
         controller.loadData(catalog)
     elif int(inputs[0]) == 2:
+        start_time = time.process_time()
         medio = input("Ingrese el medio que desea consultar: ")
         n = input("Ingrese el número de obras que desea ver: ")
         r = controller.ArtworksByMedium(catalog, medio)
-        r = controller.SortByDate(r)
-        printArtworksbyYear(r, int(n))
-
+        printArtworksbyMedium(r, int(n))
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
+    elif int(inputs[0]) == 3:
+        start_time = time.process_time()
+        print("Cargando... ")
+        nat = controller.Nationalities(catalog)
+        printNResults(nat)
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
     else:
         sys.exit(0)
 sys.exit(0)
