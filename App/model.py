@@ -227,6 +227,60 @@ def SortNationalities(catalog):
         v = me.getValue(n)
         lt.addLast(sort, v)
     return mr.sort(sort, cmpBySize)
+
+def getArtistIdByName(catalog, artistName):
+    artists_c = catalog['artists']
+    sort = lt.newList()
+    keys = mp.keySet(artists_c)
+    for key in lt.iterator(keys):
+        n = mp.get(artists_c, key)
+        v = me.getValue(n)
+        lt.addLast(sort, v)
+        
+    for artist in lt.iterator(sort):
+        if artist['DisplayName'] == artistName:
+            artistId = artist['ConstituentID']
+    return artistId
+
+def countArtworksByArtist(catalog, artistId):
+    total_obras = 0
+    artists_c = catalog['artworks']
+    sort = lt.newList()
+    tecniques = lt.newList()
+    most_tecniques = []
+    keys = mp.keySet(artists_c)
+    for key in lt.iterator(keys):
+        n = mp.get(artists_c, key)
+        v = me.getValue(n)
+        lt.addLast(sort, v)
+    
+    for artwork in lt.iterator(sort):
+        if artistId in artwork['ConstituentID']:
+            total_obras += 1
+            most_tecniques.append(artwork['Medium'])
+            if not artwork['Medium'] in tecniques:
+                lt.addLast(tecniques, artwork['Medium'])
+
+    final_l = [total_obras, len(tecniques), most_frequent(most_tecniques), most_tecniques.count(most_frequent(most_tecniques))]
+    return final_l
+
+def getArtworksByTecnique(catalog, artistId, tecnique):
+    art = catalog["artworks"]
+    sort = lt.newList()
+    final_sort = []
+    keys = mp.keySet(art)
+    for key in lt.iterator(keys):
+        n = mp.get(art, key)
+        v = me.getValue(n)
+        lt.addLast(sort, v)
+
+    for artwork in lt.iterator(sort):
+        if artistId in artwork['ConstituentID'] and tecnique == artwork['Medium']:
+            final_sort.append(artwork)
+    return final_sort
+
+def most_frequent(List):
+    return max(set(List), key = List.count)
     
 def cmpBySize(n1, n2):
     return (lt.size(n1["artworks"])>lt.size(n2["artworks"])) 

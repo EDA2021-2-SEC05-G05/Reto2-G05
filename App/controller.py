@@ -55,7 +55,8 @@ def loadArtworks(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
+    #booksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
+    booksfile = cf.data_dir + 'chao.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for artwork in input_file:
         model.addArtwork(catalog, artwork)
@@ -65,7 +66,8 @@ def loadArtists(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    #booksfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    booksfile = cf.data_dir + 'hola.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for artist in input_file:
         model.addArtist(catalog, artist)
@@ -88,5 +90,11 @@ def ArtworksByMedium(catalog, medio):
     return SortByDate(r)
 def Nationalities(catalog):
     return model.SortNationalities(catalog)
+def getArtistIdByName(catalog, artistName):
+    return model.getArtistIdByName(catalog, artistName)
+def countArtworksByArtist(catalog, artistId):
+    return model.countArtworksByArtist(catalog, artistId)
+def getArtworksByTecnique(catalog, artistId, tecnique):
+    return model.getArtworksByTecnique(catalog, artistId, tecnique)
 def sortBiggestN(list):
     return model.sortNlist(list)

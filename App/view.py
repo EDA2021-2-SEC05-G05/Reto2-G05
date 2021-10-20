@@ -40,7 +40,7 @@ def printMenu():
     print("1- Cargar información en el catálogo")
     print("2- Artistas cronológicamente")
     print("3- Adquisiciones cronológicamente")
-    print("4- ")
+    print("4- Clasificar obras de un artista por técnica")
     print("5- Nacionalidades por cantidad de obras")
     print("0- Salir")
 
@@ -79,6 +79,17 @@ def printNResults(nat):
         i+=1
     a = lt.getElement(nat, 1)
     Results3(a["artworks"])
+
+def Results3Artworks(list):
+    i = 0
+    while i<=2:
+        print("Título: ", list[i]["Title"], " | Fecha de la obra: ",list[i]["Date"], " | Medio: ", list[i]["Medium"], " | Dimensiones: ", list[i]["Dimensions"], "\n" )
+        i+=1
+    j = 1
+    while j<=3:
+        print("Título: ", list[-j]["Title"], " | Fecha de la obra: ",list[-j]["Date"], " | Medio: ", list[-j]["Medium"], " | Dimensiones: ", list[-j]["Dimensions"], "\n" )
+        j+=1
+
 
 def Results3(list):
     size = lt.size(list)
@@ -150,6 +161,25 @@ while True:
         r = controller.ArtworksByDA(catalog, date0, dateF)
         print("El número de obras compradas es de :", r[1])
         Results3(r[0])
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
+    elif int(inputs[0]) == 4:
+        start_time = time.process_time()
+        print("Cargando... ")
+        artistName = input("Ingrese el nombre del Artista: ")
+        #artistName = 'Louise Bourgeois'
+        id = controller.getArtistIdByName(catalog, artistName)
+        count = controller.countArtworksByArtist(catalog, id)[0]
+        print("{name} with MoMA {id} has {count} pieces in his/her name at the museum.".format(name = artistName, id = id, count = count))
+        tecniques = controller.countArtworksByArtist(catalog, id)[1]
+        print("There are {tecniques} different mediums/techniques in his/her work.".format(tecniques = tecniques))
+        most_tecnique = controller.countArtworksByArtist(catalog, id)[2]
+        count_most_tecnique = controller.countArtworksByArtist(catalog, id)[3]
+        print("Her/His most used Medium/Technique is: {most_tecnique} with {count_most_tecnique} pieces.".format(most_tecnique = most_tecnique, count_most_tecnique=count_most_tecnique))
+        artworks = controller.getArtworksByTecnique(catalog, id, most_tecnique)
+        print("A sample of 3 {most_tecnique} from the collection are:".format(most_tecnique=most_tecnique))
+        Results3Artworks(artworks)
         stop_time = time.process_time()
         elapsed_time_mseg = (stop_time - start_time)*1000
         print(elapsed_time_mseg)
