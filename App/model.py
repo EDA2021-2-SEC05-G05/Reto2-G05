@@ -43,6 +43,7 @@ los mismos.
 def newCatalog():
     catalog = {'artworks': None,
                "medium": None,
+               "artist": None,
                "nationalities": None}
     catalog['artworks'] = mp.newMap(160000,
                                     maptype='PROBING',
@@ -71,8 +72,7 @@ def addArtwork(catalog, artwork):
     addArtworkNationality(catalog, artwork)
     id = artwork["ObjectID"]
     mp.put(catalog['artworks'], id, artwork)
-    
-    
+     
 
 def addArtist(catalog, artist):
     id = artist["ConstituentID"]
@@ -85,7 +85,7 @@ def addArtworkMedium(catalog, artwork):
         med = artwork["Medium"]
     else:
         med = "Unknown"
-    existmed = mp.contains(mediums, med)
+        existmed = mp.contains(mediums, med)
     if existmed:
         entry = mp.get(mediums, med)
         m = me.getValue(entry)
@@ -164,6 +164,12 @@ def getArtworksByMedium(catalog, medio):
     medio = mp.get(catalog['medium'], medio)
     if medio:
         return me.getValue(medio)['artworks']
+    return None
+
+def getIdByArtistName(catalog, artistName):
+    artistN = mp.get(catalog['artists'], artistName)
+    if artistN:
+        return me.getValue(artistN)['artistID']
     return None
 
 # Funciones utilizadas para comparar elementos dentro de una lista
