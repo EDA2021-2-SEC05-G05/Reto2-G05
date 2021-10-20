@@ -74,11 +74,19 @@ def loadArtists(catalog):
 
 def SortByDate(list):
     return model.SortByDate(list)
+def SortByBD(list):
+    return model.sortArtistsBD(list)
 
 # Funciones de consulta sobre el catálogo
+def ArtistsByBD(catalog, date0, dateF):
+    list = model.ArtistsByBD(catalog, date0, dateF)
+    return model.sortArtistsBD(list)
+def ArtworksByDA(catalog, date0, dateF):
+    return model.ArtworksByDA(catalog, date0, dateF)
 def ArtworksByMedium(catalog, medio):
     r = model.getArtworksByMedium(catalog, medio)
     return SortByDate(r)
 def Nationalities(catalog):
-    model.Nationalities(catalog)
     return model.SortNationalities(catalog)
+def sortBiggestN(list):
+    return model.sortNlist(list)
