@@ -60,6 +60,14 @@ def newCatalog():
                                    maptype='PROBING',
                                    loadfactor=0.50,
                                    comparefunction=compareNationality)
+    catalog["DAs"] = mp.newMap(500,
+                                   maptype='PROBING',
+                                   loadfactor=0.50,
+                                   comparefunction=compareDA)
+    catalog["BDs"] = mp.newMap(1000,
+                                   maptype='PROBING',
+                                   loadfactor=0.50,
+                                   comparefunction=compareDA)
     return catalog
 
 # Funciones para agregar informacion al catalogo
@@ -67,14 +75,15 @@ def newCatalog():
 def addArtwork(catalog, artwork):
     #addArtworkMedium(catalog, artwork)
     artwork = addArtists(catalog, artwork)
-    #lt.addLast(catalog['artworks'], artwork)
-    addArtworkNationality(catalog, artwork)
+    #addArtworkNationality(catalog, artwork)
+    addDA(catalog, artwork)
     id = artwork["ObjectID"]
     mp.put(catalog['artworks'], id, artwork)
     
     
 
 def addArtist(catalog, artist):
+    addBD(catalog, artist)
     id = artist["ConstituentID"]
     mp.put(catalog['artists'], id, artist)
 
@@ -111,19 +120,21 @@ def addArtists(catalog, artwork):
         lt.addLast(artwork["AWartists"], v)
     return artwork
 
-def addArtworkNationality(catalog, artwork):
-    for artist in lt.iterator(artwork["AWartists"]):
-        n = artist["Nationality"]
-        if n == "":
-            n = "Unknown"
-        existn = mp.contains(catalog["nationalities"], n)
-        if existn:
-            entry = mp.get(catalog["nationalities"], n)
-            m = me.getValue(entry)
-        else:
-            m = newNationality(n)
-            mp.put(catalog["nationalities"], n, m)
-        lt.addLast(m['artworks'], artwork)
+def addArtworkNationality(catalog):
+    values = mp.valueSet(catalog["artworks"])
+    for artwork in lt.iterator(values):
+        for artist in lt.iterator(artwork["AWartists"]):
+            n = artist["Nationality"]
+            if n == "":
+                n = "Unknown"
+            existn = mp.contains(catalog["nationalities"], n)
+            if existn:
+                entry = mp.get(catalog["nationalities"], n)
+                m = me.getValue(entry)
+            else:
+                m = newNationality(n)
+                mp.put(catalog["nationalities"], n, m)
+            lt.addLast(m['artworks'], artwork)
             
 
 def newNationality(n):
@@ -132,33 +143,73 @@ def newNationality(n):
     entry['artworks'] = lt.newList('SINGLE_LINKED', compareArtworksIds)
     return entry
 
+def addDA(catalog, artwork):
+    DAmap = catalog["DAs"]
+    DoA = artwork["DateAcquired"]
+    if (artwork['DateAcquired'] == ''):
+        DoA = "Unknown"
+    existmed = mp.contains(DAmap, DoA)
+    if existmed:
+        entry = mp.get(DAmap, DoA)
+        m = me.getValue(entry)
+    else:
+        m = newDA(DoA)
+        mp.put(DAmap, DoA, m)
+    lt.addLast(m['artworks'], artwork)
 
+def newDA(DoA):
+    entry = {'DA': "", "artworks": None}
+    entry['DA'] = DoA
+    entry['artworks'] = lt.newList('SINGLE_LINKED', compareMedium)
+    return entry
+
+def addBD(catalog, artist):
+    BDmap = catalog["BDs"]
+    bd = artist["BeginDate"]
+    if (artist['BeginDate'] == ''):
+        bd = "Unknown"
+    existmed = mp.contains(BDmap, bd)
+    if existmed:
+        entry = mp.get(BDmap, bd)
+        m = me.getValue(entry)
+    else:
+        m = newBD(bd)
+        mp.put(BDmap, bd, m)
+    lt.addLast(m['artists'], artist)
+
+def newBD(DoA):
+    entry = {'BD': "", "artists": None}
+    entry['BD'] = DoA
+    entry['artists'] = lt.newList('SINGLE_LINKED', compareMedium)
+    return entry
 # Funciones para creacion de datos
 
 # Funciones de consulta
 def ArtistsByBD(catalog, date0, dateF):
-    keys = mp.keySet(catalog["artists"])
+    values = catalog["valuesartists"]
     list = lt.newList()
-    for key in lt.iterator(keys):
-        n = mp.get(catalog["artists"], key)
-        v = me.getValue(n)
-        if v["BeginDate"] != "":
-            if v["BeginDate"] <= dateF and v["BeginDate"] >= date0:
-                lt.addLast(list, v)
+    for value in lt.iterator(values):
+        if value["BD"] >= date0:
+            if value["BD"] <= dateF:
+                value["artists"] = mr.sort(value["artists"], cmpDName)
+                for artist in lt.iterator(value["artists"]):
+                    lt.addLast(list, artist)
+            else:
+                return list
     return list
 
 def ArtworksByDA (catalog, date0, datef):
     artworksbyDA = lt.newList()
     purchased = 0
-    for artwork in lt.iterator(catalog["artworks"]):
-        if artwork["DateAcquired"] != "":
-            if artwork["DateAcquired"]>=date0:
-                if artwork["DateAcquired"]<= datef:
+    values = catalog["valuesartworks"]
+    for value in lt.iterator(values):
+        if value["DA"] >=date0:
+            if value["DA"]<=datef:
+                value["artworks"] = mr.sort(value["artworks"], cmpName)
+                for artwork in lt.iterator(value["artworks"]):
                     lt.addLast(artworksbyDA, artwork)
                     if "Purchase" in artwork["CreditLine"] or "Purchased" in artwork["CreditLine"]:
                         purchased += 1
-                else:
-                    return artworksbyDA, purchased
     return artworksbyDA, purchased
 def getArtworksByMedium(catalog, medio):
     medio = mp.get(catalog['medium'], medio)
@@ -191,6 +242,14 @@ def compareNationality(keyN, nationality):
         return 1
     else:
         return -1
+def compareDA(keyAD, AD):
+    authentry = me.getKey(AD)
+    if (keyAD == authentry):
+        return 0
+    elif (keyAD > authentry):
+        return 1
+    else:
+        return -1
 def compareIds(id, entry):
     identry = me.getKey(entry)
     if (id == identry):
@@ -204,14 +263,16 @@ def sortArtistsBD(list):
     return mr.sort(list, cmpArtist)
 def cmpArtist(artist1, artist2):
     return (artist1["BeginDate"]<artist2["BeginDate"])
-def SortByDate(list):
-    return mr.sort(list, cmpArtworkByDate)
-def cmpArtworkByDate(artwork1, artwork2):
-    if artwork1["DateAcquired"] == "":
-        return 0
-    else:
-        return (artwork1["DateAcquired"]<artwork2["DateAcquired"])
-
+def SortByDate(catalog):
+    list = mp.keySet(catalog["artists"])
+    s = mr.sort(list, cmpDate)
+    catalog["keysartists"] = s
+def cmpDate(date1, date2):
+    return (date1<date2)
+def cmpName(n1, n2):
+    return n1["Title"]<n2["Title"]
+def cmpDName(n1, n2):
+    return n1["DisplayName"]<n2["DisplayName"]
 def SortNationalities(catalog):
     nat = catalog["nationalities"]
     sort = lt.newList()
@@ -227,7 +288,20 @@ def cmpBySize(n1, n2):
 def sortNlist(list):
     return mr.sort(list, cmpByTitle)
 def cmpByTitle(n1, n2):
-    return (n1["Title"]<n2["Title"]) 
+    return (n1["Date"]<n2["Date"]) 
+def sortByDA(catalog):
+    list = mp.valueSet(catalog["DAs"])
+    catalog["valuesartworks"] = mr.sort(list, cmpByDA)
+    
+def cmpByDA(n1, n2):
+    return (n1["DA"]<n2["DA"]) 
+
+def sortByBD(catalog):
+    list = mp.valueSet(catalog["BDs"])
+    catalog["valuesartists"] = mr.sort(list, cmpByBD)
+    
+def cmpByBD(n1, n2):
+    return (n1["BD"]<n2["BD"]) 
 #def checkNotDuplicate(list, artwork):
     for i in lt.iterator(list):
         if i == artwork:

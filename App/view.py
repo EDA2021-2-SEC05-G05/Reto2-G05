@@ -84,31 +84,27 @@ def Results3(list):
     size = lt.size(list)
     pri = 0
     i = 1
-    priL = lt.subList(list, 1, 200)
-    priL = controller.sortBiggestN(priL)
-    ultL = lt.subList(list, size-200, 200)
-    ultL = controller.sortBiggestN(ultL)
-    while i<=200:
-        l = lt.getElement(priL, i)
-        next = lt.getElement(priL, i+1)
+    while i<=size:
+        l = lt.getElement(list, i)
+        next = lt.getElement(list, i+1)
         artists = ""
         if l == next:
             i+=1
         else:
             for artist in lt.iterator(l["AWartists"]):
                 artists = artists + artist["DisplayName"]+ ", "
-            print("Título: ", l["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",l["Date"], " | Medio: ", l["Medium"], " | Dimensiones: ", l["Dimensions"], "\n" )
+            print("Título: ", l["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",l["Date"], "| Fecha de adquisición: ", l["DateAcquired"], "| Medio: ", l["Medium"], " | Dimensiones: ", l["Dimensions"], "\n" )
             pri+=1
             i+=1
             if pri ==3:
                 break
     print("-\n"*3)
     ult = 0
-    n = 1
+    n = 0
     last = lt.newList()
-    while n<=200:
-        l = lt.getElement(ultL, 200-n)
-        next = lt.getElement(ultL, 200-(n+1))
+    while n<=size:
+        l = lt.getElement(list, size-n)
+        next = lt.getElement(list, size-(n+1))
         if l == next:
             n+=1
         else:
@@ -120,7 +116,7 @@ def Results3(list):
                     artists = ""
                     for artist in lt.iterator(artwork["AWartists"]):
                         artists = artists + artist["DisplayName"]+ ", "
-                    print ("Título: ", artwork["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",artwork["Date"], " | Medio: ", artwork["Medium"], " | Dimensiones: ", artwork["Dimensions"], "\n")
+                    print ("Título: ", artwork["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",artwork["Date"], "| Fecha de adquisición: ", l["DateAcquired"], " | Medio: ", artwork["Medium"], " | Dimensiones: ", artwork["Dimensions"], "\n")
                 break
 
 
@@ -149,6 +145,7 @@ while True:
         dateF = input("Ingrese la fecha final en formato YYYY-MM-DD: ")
         r = controller.ArtworksByDA(catalog, date0, dateF)
         print("El número de obras compradas es de :", r[1])
+        #sort = controller.sortDA(r[0])
         Results3(r[0])
         stop_time = time.process_time()
         elapsed_time_mseg = (stop_time - start_time)*1000
