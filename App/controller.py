@@ -47,7 +47,8 @@ def loadData(catalog):
     """
     loadArtists(catalog)
     loadArtworks(catalog)
-    #SortByDate(catalog["artworks"])
+    sortByBD(catalog)
+    SortByDA(catalog)
 
 
 def loadArtworks(catalog):
@@ -55,8 +56,7 @@ def loadArtworks(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    #booksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
-    booksfile = cf.data_dir + 'chao.csv'
+    booksfile = cf.data_dir + 'MoMA/Artworks-utf8-5pct.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for artwork in input_file:
         model.addArtwork(catalog, artwork)
@@ -66,18 +66,17 @@ def loadArtists(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    #booksfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
-    booksfile = cf.data_dir + 'hola.csv'
+    booksfile = cf.data_dir + 'MoMA/Artists-utf8-5pct.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for artist in input_file:
         model.addArtist(catalog, artist)
 
 # Funciones de ordenamiento
 
-def SortByDate(list):
-    return model.SortByDate(list)
-def SortByBD(list):
-    return model.sortArtistsBD(list)
+def sortByBD(catalog):
+    return model.sortByBD(catalog)
+def SortByDA(catalog):
+    return model.sortByDA(catalog)
 
 # Funciones de consulta sobre el catálogo
 def ArtistsByBD(catalog, date0, dateF):
@@ -89,6 +88,7 @@ def ArtworksByMedium(catalog, medio):
     r = model.getArtworksByMedium(catalog, medio)
     return SortByDate(r)
 def Nationalities(catalog):
+    model.addArtworkNationality(catalog)
     return model.SortNationalities(catalog)
 def getArtistIdByName(catalog, artistName):
     return model.getArtistIdByName(catalog, artistName)
@@ -98,3 +98,12 @@ def getArtworksByTecnique(catalog, artistId, tecnique):
     return model.getArtworksByTecnique(catalog, artistId, tecnique)
 def sortBiggestN(list):
     return model.sortNlist(list)
+def sortName(list):
+    return model.SortName(list)
+
+def CostDepa(catalog, depa):
+    return model.CostDepa(catalog, depa)
+def sortD(list):
+    return model.sortArtWorksD(list)
+def sortCost(list):
+    return model.sortArtWorksCost(list)

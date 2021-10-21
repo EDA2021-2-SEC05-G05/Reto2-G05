@@ -42,6 +42,7 @@ def printMenu():
     print("3- Adquisiciones cronológicamente")
     print("4- Clasificar obras de un artista por técnica")
     print("5- Nacionalidades por cantidad de obras")
+    print("6- Costo transporte por departamento")
     print("0- Salir")
 
 def printArtworksbyMedium(artworks, n):
@@ -78,7 +79,7 @@ def printNResults(nat):
         print("Nacionalidad: ", n["Nationality"], "| Cantidad de obras: ", lt.size(n["artworks"]), "\n")
         i+=1
     a = lt.getElement(nat, 1)
-    Results3(a["artworks"])
+    Resultsreq4(a["artworks"])
 
 def Results3Artworks(list):
     i = 0
@@ -129,7 +130,61 @@ def Results3(list):
                         artists = artists + artist["DisplayName"]+ ", "
                     print ("Título: ", artwork["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",artwork["Date"], "| Fecha de adquisición: ", l["DateAcquired"], " | Medio: ", artwork["Medium"], " | Dimensiones: ", artwork["Dimensions"], "\n")
                 break
-
+def Resultsreq4(list):
+    size = lt.size(list)
+    pri = 0
+    por = (size*20)/100
+    i = 1
+    fL= lt.subList(list, por, por)
+    fL = controller.sortName(fL)
+    while i<=por:
+        l = lt.getElement(fL, i)
+        next = lt.getElement(fL, i+1)
+        artists = ""
+        if l == next:
+            i+=1
+        else:
+            for artist in lt.iterator(l["AWartists"]):
+                artists = artists + artist["DisplayName"]+ ", "
+            print("Título: ", l["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",l["Date"], "| Fecha de adquisición: ", l["DateAcquired"], "| Medio: ", l["Medium"], " | Dimensiones: ", l["Dimensions"], "\n" )
+            pri+=1
+            i+=1
+            if pri ==3:
+                break
+    print("-\n"*3)
+    ult = 0
+    n = 0
+    lastL = lt.subList(list, size-por, por)
+    lastL = controller.sortName(lastL)
+    last = lt.newList()
+    while n<=por:
+        l = lt.getElement(lastL, lt.size(lastL)-n)
+        next = lt.getElement(lastL, lt.size(lastL)-(n+1))
+        if l == next:
+            n+=1
+        else:
+            lt.addFirst(last, l)
+            ult+=1
+            n+=1
+            if ult ==3:
+                for artwork in lt.iterator(last):
+                    artists = ""
+                    for artist in lt.iterator(artwork["AWartists"]):
+                        artists = artists + artist["DisplayName"]+ ", "
+                    print ("Título: ", artwork["Title"], " | Artista(s): " ,artists[:-2], " | Fecha de la obra: ",artwork["Date"], "| Fecha de adquisición: ", l["DateAcquired"], " | Medio: ", artwork["Medium"], " | Dimensiones: ", artwork["Dimensions"], "\n")
+                break
+def printDimensionsList(list):
+    size = lt.size(list)
+    if size < 6:
+        print("La muestra es muy pequeña")
+    else:
+        ultimos = 1
+        while ultimos <=5:
+            artwork = lt.getElement(list, ultimos)
+            artists = controller.getArtists(catalog, artwork)
+            strartists = controller.checkArtists(artists)
+            ultimos+=1
+            print('Titulo: ' + artwork['Title'] + " | Artista(s): " + strartists + ' | Classification: ' + controller.checkSTR(artwork['Classification']) + ' | Date: ' + controller.checkSTR(artwork['Date']) + " | Medium: "+ controller.checkSTR(artwork['Medium']) + " | Dimensions: " + controller.checkSTR(artwork['Dimensions'])+ " | TransCost(USD): " + str(artwork['TransCost(USD)'])+"\n")
 
 """
 Menu principal
@@ -185,6 +240,19 @@ while True:
         print("Cargando... ")
         nat = controller.Nationalities(catalog)
         printNResults(nat)
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
+    elif int(inputs[0]) == 6:
+        start_time = time.process_time()
+        depa = input("Ingrese el departamento que desea consultar: ")
+        depaL = controller.CostDepa(catalog, depa)
+        antlist = controller.sortD(depaL)
+        print("Las 5 obras más antiguas: "+"\n")
+        printDimensionsList(antlist)
+        coslist = controller.sortCost(depaL)
+        print("Las 5 obras más costosas de mover: "+"\n")
+        printDimensionsList(coslist)
         stop_time = time.process_time()
         elapsed_time_mseg = (stop_time - start_time)*1000
         print(elapsed_time_mseg)

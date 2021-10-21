@@ -32,6 +32,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Algorithms.Sorting import mergesort as mr
 assert cf
+import math
 
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
@@ -69,6 +70,10 @@ def newCatalog():
                                    maptype='PROBING',
                                    loadfactor=0.50,
                                    comparefunction=compareDA)
+    catalog["departments"] = mp.newMap(1000,
+                                   maptype='PROBING',
+                                   loadfactor=0.50,
+                                   comparefunction=compareDA)
     return catalog
 
 # Funciones para agregar informacion al catalogo
@@ -76,6 +81,7 @@ def newCatalog():
 def addArtwork(catalog, artwork):
     #addArtworkMedium(catalog, artwork)
     artwork = addArtists(catalog, artwork)
+    addDeparment(catalog, artwork)
     #addArtworkNationality(catalog, artwork)
     addDA(catalog, artwork)
     id = artwork["ObjectID"]
@@ -182,6 +188,26 @@ def newBD(DoA):
     entry['BD'] = DoA
     entry['artists'] = lt.newList('SINGLE_LINKED', compareMedium)
     return entry
+
+def addDeparment(catalog, artwork):
+    departments = catalog["departments"]
+    dep = artwork['Department']
+    if (artwork['Department'] == ''):
+        dep = "Unknown"
+    existmed = mp.contains(departments, dep)
+    if existmed:
+        entry = mp.get(departments, dep)
+        m = me.getValue(entry)
+    else:
+        m = newDepa(dep)
+        mp.put(departments, dep, m)
+    lt.addLast(m['artworks'], artwork)
+
+def newDepa(DoA):
+    entry = {'Department': "", "artworks": None}
+    entry['Department'] = DoA
+    entry['artworks'] = lt.newList('SINGLE_LINKED', compareMedium)
+    return entry
 # Funciones para creacion de datos
 
 # Funciones de consulta
@@ -223,6 +249,38 @@ def getIdByArtistName(catalog, artistName):
         return me.getValue(artistN)['artistID']
     return None
 
+def CostDepa(catalog, depa):
+    Depa = mp.get(catalog["departments"], depa)
+    ListDepa = me.getValue(Depa)
+    for artwork in lt.iterator(ListDepa["artworks"]):
+        r = checkDimensions(artwork)
+        cost = r[0]
+        dlist = r[1]
+        if lt.size(dlist) == 2:
+            pri = lt.getElement(dlist, 1)
+            seg = lt.getElement(dlist, 2)
+            a = (pri/100) * (seg/100)
+            a = 72.00*a
+        elif lt.size(dlist) ==3:
+            pri = lt.getElement(dlist, 1)
+            seg = lt.getElement(dlist, 2)
+            ter = lt.getElement(dlist, 3)
+            a = (pri/100) * (seg/100)* (ter/100)
+            a = 72.00*a
+        else: 
+            a = 48.00
+        if a > cost:
+            cost =a
+        if artwork["Weight (kg)"] != "0" and artwork["Weight (kg)"] != "":
+            if "." in artwork["Weight (kg)"]:
+                w = float(artwork["Weight (kg)"])
+            else: 
+                w = int(artwork["Weight (kg)"])
+            w = w*72.00
+            cost+=w
+        cost = round(cost, 2)
+        artwork["TransCost(USD)"] = cost
+    return list
 # Funciones utilizadas para comparar elementos dentro de una lista
 def compareArtworksIds(id, entry):
     identry = me.getKey(entry)
@@ -276,9 +334,9 @@ def SortByDate(catalog):
 def cmpDate(date1, date2):
     return (date1<date2)
 def cmpName(n1, n2):
-    return n1["Title"]<n2["Title"]
+    return n1["DateAcquired"]<n2["DateAcquired"]
 def cmpDName(n1, n2):
-    return n1["DisplayName"]<n2["DisplayName"]
+    return n1["BeginDate"]<n2["BeginDate"]
 def SortNationalities(catalog):
     nat = catalog["nationalities"]
     sort = lt.newList()
@@ -289,6 +347,15 @@ def SortNationalities(catalog):
         lt.addLast(sort, v)
     return mr.sort(sort, cmpBySize)
 
+def sortArtWorksD(list):
+    return mr.sort(list, cmpArtworkByDate)
+def sortArtWorksCost(list):
+    return mr.sort(list, cmpArtworkByCost)
+
+def cmpArtworkByCost(artwork1, artwork2):
+    return (artwork1["TransCost(USD)"]>artwork2["TransCost(USD)"])
+def cmpArtworkByDate(artwork1, artwork2):
+    return (artwork1["Date"]<artwork2["Date"])
 def getArtistIdByName(catalog, artistName):
     artists_c = catalog['artists']
     sort = lt.newList()
@@ -362,6 +429,63 @@ def sortByBD(catalog):
     
 def cmpByBD(n1, n2):
     return (n1["BD"]<n2["BD"]) 
+def SortName(list):
+    return mr.sort(list, cmpname)
+def cmpname(n1, n2):
+    return n1["Title"]<n2["Title"]
+
+def checkDimensions (artwork):
+    height = artwork["Height (cm)"]
+    width = artwork["Height (cm)"]
+    depth = artwork["Depth (cm)"]
+    diameter = artwork["Diameter (cm)"]
+    lenght = artwork["Length (cm)"]
+    circumference = artwork["Circumference (cm)"]
+    cost = 0
+    dimensions = lt.newList()
+    if diameter != "0" and diameter != "":
+        if circumference != "":
+            if depth != "" and depth != "0":
+                d = float(diameter)/100
+                de = float(depth)/100
+                cost = 2*math.pi*((float(d))/2)*(float(de)+((float(d))/2))
+                cost = 72.00*cost
+            if height != "" and height != "0":
+                d = float(diameter)/100
+                de = float(height)/100
+                cost = 2*math.pi*((float(d))/2)*(float(de)+((float(d))/2))
+                cost = 72.00*cost
+            if lenght != "" and lenght != "0":
+                d = float(diameter)/100
+                de = float(lenght)/100
+                cost = 2*math.pi*((float(d))/2)*(float(de)+((float(d))/2))
+                cost = 72.00*cost
+    if height !="" and height !="0":
+        if "." in height:
+            w = float(height)
+        else: 
+            w = int(height)
+        lt.addLast(dimensions, w)
+        
+    if width != "" and width!="0":
+        if "." in width:
+            w = float(width)
+        else: 
+            w = int(width)
+        lt.addLast(dimensions, w)
+    if lenght != "" and lenght!="0":
+        if "." in lenght:
+            w = float(lenght)
+        else: 
+            w = int(lenght)
+        lt.addLast(dimensions, w)
+    if depth != "" and depth!="0":
+        if "." in depth:
+            w = float(depth)
+        else: 
+            w = int(depth)
+        lt.addLast(dimensions, w)
+    return cost, dimensions
 #def checkNotDuplicate(list, artwork):
     for i in lt.iterator(list):
         if i == artwork:
